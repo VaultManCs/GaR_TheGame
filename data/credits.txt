@@ -1,0 +1,35 @@
+[center]
+[imagealign=center]
+[scale=25]
+[image=logo]
+
+GRASPING AT REALITY:
+[italic]
+The Game
+[/italic]
+
+[left]
+	Music: 
+[center]
+[bold]
+Grasping at Reality
+[/bold]
+----------------------------------
+[left]
+	Artwork: 
+[center]
+Grasping at Reality
+Denton
+---------------------------
+[left]
+	Photos:	
+[center]	
+Tom White
+---------------------------
+[left]
+	Special thanks to:
+[center]
+RPG Maker MV
+Rebecca-Kruger
+[center]
+[image=logo]
