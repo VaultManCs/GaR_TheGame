@@ -3,9 +3,6 @@
  * @plugindesc v1.9 GaR Character Select (Face + Stats) + Custom BG + Stop Music + Optional Select BGM (functional pre-class-select)
  * @author You
  *
- * @command CharacterSelect
- * @text Character Select
- * @desc Opens the character selection screen.
  * @param ActorIds
  * @type string
  * @default 1,2
@@ -302,23 +299,16 @@
     Window_CharSelectList.prototype = Object.create(Window_Command.prototype);
     Window_CharSelectList.prototype.constructor = Window_CharSelectList;
 
-    Window_CharSelectList.prototype.initialize =
-function(rect)
-{
-    this._actorIds = ACTOR_IDS.slice();
-    this._forcedWidth = rect.width;
-    this._forcedHeight = rect.height;
-    this._lastIndex = -999;
-    this._onChange = null;
-
-    Window_Command.prototype.initialize.call(
-        this,
-        rect
-    );
-
-    this.select(0);
-    this.activate();
-};
+    Window_CharSelectList.prototype.initialize = function (x, y, width, height) {
+        this._actorIds = ACTOR_IDS.slice();
+        this._forcedWidth = width || 320;
+        this._forcedHeight = height || 0;
+        this._lastIndex = -999;
+        this._onChange = null;
+        Window_Command.prototype.initialize.call(this, x, y);
+        this.select(0);
+        this.activate();
+    };
 
     Window_CharSelectList.prototype.windowWidth = function () {
         return Math.min(this._forcedWidth, Graphics.boxWidth);
@@ -370,13 +360,8 @@ function(rect)
     Window_CharPreview.prototype = Object.create(Window_Base.prototype);
     Window_CharPreview.prototype.constructor = Window_CharPreview;
 
-    Window_CharPreview.prototype.initialize =
-function(rect)
-{
-    Window_Base.prototype.initialize.call(
-        this,
-        rect
-    );
+    Window_CharPreview.prototype.initialize = function (x, y, width, height) {
+        Window_Base.prototype.initialize.call(this, x, y, width, height);
         this._actorId = null;
         this._refreshQueued = false;
         this.refresh();
@@ -480,19 +465,12 @@ function(rect)
     Window_CharConfirm.prototype = Object.create(Window_Command.prototype);
     Window_CharConfirm.prototype.constructor = Window_CharConfirm;
 
-   Window_CharConfirm.prototype.initialize =
-function(rect)
-{
-    this._w = rect.width;
-
-    Window_Command.prototype.initialize.call(
-        this,
-        rect
-    );
-
-    this.openness = 0;
-    this.deactivate();
-};
+    Window_CharConfirm.prototype.initialize = function (x, y, width) {
+        this._w = width || 360;
+        Window_Command.prototype.initialize.call(this, x, y);
+        this.openness = 0;
+        this.deactivate();
+    };
 
     Window_CharConfirm.prototype.windowWidth = function () {
         return Math.min(this._w, Graphics.boxWidth);
@@ -536,15 +514,7 @@ function(rect)
     };
 
     Scene_CharacterSelect.prototype.createHelpWindow = function () {
-        const rect = new Rectangle(
-    0,
-    0,
-    Graphics.boxWidth,
-    this.calcWindowHeight(2, false)
-);
-
-this._helpWindow =
-    new Window_Help(rect);
+        this._helpWindow = new Window_Help(1);
         this._helpWindow.setText(UI_TITLE);
         this.addWindow(this._helpWindow);
     };
@@ -553,18 +523,7 @@ this._helpWindow =
         var topY = this._helpWindow ? this._helpWindow.height : 0;
 
         var listW = 320;
-        const listRect =
-    new Rectangle(
-        0,
-        topY,
-        listW,
-        Graphics.boxHeight - topY
-    );
-
-this._listWindow =
-    new Window_CharSelectList(
-        listRect
-    );
+        this._listWindow = new Window_CharSelectList(0, topY, listW, 0);
         this._listWindow.setHandler("ok", this.onPickOk.bind(this));
         this._listWindow.setHandler("cancel", this.onPickCancel.bind(this));
         this.addWindow(this._listWindow);
@@ -572,18 +531,7 @@ this._listWindow =
         var previewX = listW;
         var previewW = Graphics.boxWidth - listW;
         var previewH = Graphics.boxHeight - topY;
-        const previewRect =
-    new Rectangle(
-        previewX,
-        topY,
-        previewW,
-        previewH
-    );
-
-this._previewWindow =
-    new Window_CharPreview(
-        previewRect
-    );
+        this._previewWindow = new Window_CharPreview(previewX, topY, previewW, previewH);
         this.addWindow(this._previewWindow);
 
         var self = this;
@@ -593,36 +541,16 @@ this._previewWindow =
         this._previewWindow.setActorId(this._listWindow.currentActorId());
 
         // Confirm window at bottom centre
-        const confirmW = 360;
-const confirmH = 120;
+        var confirmW = 360;
+        var confirmH = Window_Base.prototype.fittingHeight(2);
+        var confirmX = Math.floor((Graphics.boxWidth - confirmW) / 2);
+        var confirmY = Graphics.boxHeight - confirmH;
 
-const confirmX =
-    Math.floor((Graphics.boxWidth - confirmW) / 2);
-
-const confirmY =
-    Graphics.boxHeight - confirmH;
-
-const confirmRect = new Rectangle(
-    confirmX,
-    confirmY,
-    confirmW,
-    confirmH
-);
-
-this._confirmWindow =
-    new Window_CharConfirm(confirmRect);
-
-this._confirmWindow.setHandler(
-    "yes",
-    this.onConfirmYes.bind(this)
-);
-
-this._confirmWindow.setHandler(
-    "no",
-    this.onConfirmNo.bind(this)
-);
-
-	this.addWindow(this._confirmWindow)};
+        this._confirmWindow = new Window_CharConfirm(confirmX, confirmY, confirmW);
+        this._confirmWindow.setHandler("yes", this.onConfirmYes.bind(this));
+        this._confirmWindow.setHandler("no", this.onConfirmNo.bind(this));
+        this.addWindow(this._confirmWindow);
+    };
 
     Scene_CharacterSelect.prototype.onPickOk = function () {
         this._pendingActorId = this._listWindow.currentActorId();
@@ -691,15 +619,14 @@ Scene_CharacterSelect.prototype.onConfirmNo = function () {
     // -------------------------------
     // Plugin Command: CharacterSelect
     // -------------------------------
-PluginManager.registerCommand(
-    pluginName,
-    "CharacterSelect",
-    () => {
-        SceneManager.push(
-            Scene_CharacterSelect
-        );
-    }
-);
+    if (!GAR._origPluginCommand)
+        GAR._origPluginCommand = Game_Interpreter.prototype.pluginCommand;
+    Game_Interpreter.prototype.pluginCommand = function (command, args) {
+        GAR._origPluginCommand.call(this, command, args);
+        if (String(command).toLowerCase() === "characterselect") {
+            SceneManager.push(Scene_CharacterSelect);
+        }
+    };
 
     // -------------------------------
     // After map starts: apply sprite/visibility once + clamp coords
@@ -728,7 +655,14 @@ var fs = require("fs");
 var path = require("path");
 var _GAR_createBuffer = AudioManager.createBuffer;
 
+AudioManager.createBuffer = function(folder, name) {
 
+    var ext = this.audioFileExt();
+
+    var url = this._path + folder + "/" + name + ext;
+
+    return new WebAudio(url);
+};
 AudioManager.createBuffer = function(folder, name) {
 
     var ext = this.audioFileExt();
