@@ -1,8 +1,12 @@
 /*:
- * @target MV MZ
- * @plugindesc v2.1 Per-map/zone BGM selector (multi MapIds per config) + keep playing within zone (MV/MZ) - GaR_MapBgmByMap
+ * @target MZ
+ * @plugindesc v2.1 Per-map/zone BGM selector
  * @author You
  *
+ * @command RefreshConfigs
+ * @text Refresh Configs
+ * @desc Re-read plugin parameters and apply them to the current map.
+ * 
  * @param MapConfigs
  * @type struct<MapBgmConfig>[]
  * @default []
@@ -264,7 +268,7 @@
   }
 
   function buildIndex() {
-    var raw = params.MapConfigs;
+    var raw = params["MapConfigs"] || "[]";
     var arr;
 
     // MZ: array of JSON strings; MV: JSON array string paste
@@ -325,19 +329,22 @@
     if (AudioManager && AudioManager.stopBgm) AudioManager.stopBgm();
   }
 
-  function fadeOutThenStop(sec, after) {
+function fadeOutThenStop(sec, after) {
     sec = Math.max(0, Number(sec || 0));
-    if (AudioManager && AudioManager.fadeOutBgm && sec > 0) {
-      AudioManager.fadeOutBgm(sec);
-      setTimeout(function() {
-        if (AudioManager && AudioManager.stopBgm) AudioManager.stopBgm();
-        if (after) after();
-      }, ms(sec));
+
+    if (AudioManager.fadeOutBgm && sec > 0) {
+        AudioManager.fadeOutBgm(sec);
+
+        setTimeout(() => {
+            if (after) after();
+        }, ms(sec));
     } else {
-      stopInstant();
-      if (after) after();
+        if (AudioManager.stopBgm) {
+            AudioManager.stopBgm();
+        }
+        if (after) after();
     }
-  }
+}
 
   function startFadeIfWanted() {
     if (START_BEHAVIOUR !== "fade") return;
@@ -417,24 +424,27 @@
   }
 
   // Hook map setup (runs on transfers)
-  var _Game_Map_setup = Game_Map.prototype.setup;
-  Game_Map.prototype.setup = function(mapId) {
-    _Game_Map_setup.call(this, mapId);
-    applyForMap(mapId);
-  };
+  const _Scene_Map_onMapLoaded = Scene_Map.prototype.onMapLoaded;
+Scene_Map.prototype.onMapLoaded = function() {
+    _Scene_Map_onMapLoaded.call(this);
+
+    if ($gameMap) {
+        applyForMap($gameMap.mapId());
+    }
+};
 
   // API
-  window.GaR_MapBgmByMap = {
+globalThis.GaR_MapBgmByMap = {
     refresh: function() {
-      INDEX = buildIndex();
-      if ($gameMap) applyForMap($gameMap.mapId());
+        INDEX = buildIndex();
+        if ($gameMap) applyForMap($gameMap.mapId());
     }
-  };
+};
 
   // MZ plugin command (safe in MV: registerCommand doesn't exist)
   if (PluginManager.registerCommand) {
     PluginManager.registerCommand(PLUGIN_NAME, "RefreshConfigs", function() {
-      window.GaR_MapBgmByMap.refresh();
+      globalThis.GaR_MapBgmByMap.refresh();
     });
   }
 
