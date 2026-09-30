@@ -1,0 +1,14 @@
+[center]
+[bold]
+Grasping at Reality: The Game
+[/bold]
+Changelog:
+[center]
+----------------------------------
+V0.051.20261001
+[left]
+* Added Changelog
+[center]
+----------------------------------
+[scale=25]
+[image=logo]
