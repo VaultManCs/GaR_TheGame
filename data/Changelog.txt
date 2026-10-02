@@ -5,6 +5,11 @@ Grasping at Reality: The Game
 Changelog:
 [center]
 ----------------------------------
+V0.051.20261002
+[left]
+* Added Chicken Puzzle (part 3?)
+[center]
+----------------------------------
 V0.051.20261001
 [left]
 * Added Changelog
