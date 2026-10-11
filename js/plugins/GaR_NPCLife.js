@@ -248,6 +248,7 @@ GaR_NPCLife._schedulesLoaded = false;
 
 class GaRNPC
 {
+	/*NPC CLASS */
     constructor(data)
     {
         this.controlMode = "schedule";
@@ -1157,18 +1158,27 @@ function()
         return;
     }
 
-if (
-    !npc.forceVisible &&
-    npc.currentMap !== $gameMap.mapId()
-)
+
+
+
+if (npc.forceVisible)
+{
+    this.setTransparent(false);
+    this.setPriorityType(1);
+    this.setThrough(false);
+}
+else if (npc.currentMap === $gameMap.mapId())
+{
+    this.setTransparent(false);
+    this.setPriorityType(1);
+    this.setThrough(false);
+}
+else
 {
     this.setTransparent(true);
+    this.setThrough(true);
     return;
 }
-
-
-
-this.setTransparent(false);
 
 if (
     this.x !== npc.currentX ||
